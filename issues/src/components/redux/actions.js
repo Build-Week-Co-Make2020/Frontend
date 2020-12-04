@@ -11,25 +11,28 @@ export const LOGIN_SUCCESS = "LOGIN_SUCCESS"
 
 export const fetchData = () => (dispatch)=>{
     axiosWithAuth()
-    .get("/posts")
+    .get("/posts/")
     .then(res =>{
         console.log(res.data)
         dispatch({type: FETCH_DATA, payload: res.data})
     })
-    // Console.dir displays more detailed data...or at least that's what I've been told anyway
-    .catch(err => console.dir(err))
+    .catch(err => console.log(err))
 }
 
 export const signUser = (userCreds) => (dispatch) => {
     console.log("Expected user data ====>", userCreds)
     axios
-        .post("https://bd-comake.herokuapp.com/api/auth/register", userCreds)
+        .post("https://comakeredeploy.herokuapp.com/api/auth/register", userCreds)
         .then((res) => {
-            console.log(res)
-            localStorage.setItem('token', res.token)
-            // dispatch({type: LOGIN_SUCCESS, payload: res.data.id})
+            localStorage.setItem('token', res.data.token)
         })
-        .then(() => window.location = '/posts')
+        .then(() => {
+            axiosWithAuth()
+            .get('/posts/')
+            .then(() => {
+                window.location = '/posts'
+            })
+        })
         .catch(err =>
             dispatch({type: DATA_FAIL, payload: err})
         )
@@ -38,12 +41,17 @@ export const signUser = (userCreds) => (dispatch) => {
 export const logUser = (userCreds) => (dispatch) => {
     console.log("Expected user data ====>", userCreds)
     axios
-        .post("https://bd-comake.herokuapp.com/api/auth/login", userCreds)
+        .post("https://comakeredeploy.herokuapp.com/api/auth/login", userCreds)
         .then((res) => {
             localStorage.setItem('token', res.data.token)
-            // dispatch({type: LOGIN_SUCCESS, payload: res.data.id})
         })
-        .then(() => window.location = '/posts')
+        .then(() => {
+            axiosWithAuth()
+            .get('/posts/')
+            .then(() => {
+                window.location = '/posts'
+            })
+        })
         .catch(err =>
             dispatch({type: DATA_FAIL, payload: err})
         )
@@ -55,7 +63,7 @@ export const addData = (data, id) => (dispatch) => {
     .post(`/posts/${id}`, data)
     .then(res => {
             console.log(res)
-            dispatch({type: ADD_POSTS, payload: res.data})
+            dispatch({type: FETCH_DATA, payload: res.data})
     })
     .catch(err =>
         dispatch({type: DATA_FAIL, payload: err})
@@ -67,8 +75,8 @@ export const editData = (data, id) => (dispatch) => {
     axiosWithAuth()
     .put(`/posts/${id}`, data)
     .then(res => {
-        console.log(res.data)
-        dispatch({type: EDIT_POST, payload: {resData: res.data, postData: data}})
+        console.log(res)
+        dispatch({type: EDIT_POST, payload: {resData: id, postData: data}})
     })
     .catch(err =>
             dispatch({type: DATA_FAIL, payload: err})
